@@ -6,6 +6,7 @@ import {
   getProductById,
   updateProduct,
   deleteProduct,
+  getLowStockProducts,
 } from "../controllers/productController";
 
 import {
@@ -17,6 +18,9 @@ const router = Router();
 
 // Any authenticated user can view products
 router.get("/", authenticateToken, getProducts);
+
+// Get low-stock products
+router.get("/low-stock", authenticateToken, getLowStockProducts);
 
 router.get("/:id", authenticateToken, getProductById);
 

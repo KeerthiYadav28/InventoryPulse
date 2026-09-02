@@ -254,3 +254,36 @@ export const deleteProduct = async (req: Request, res: Response) => {
     });
   }
 };
+
+// GET LOW-STOCK PRODUCTS
+export const getLowStockProducts = async (
+  _req: Request,
+  res: Response
+) => {
+  try {
+    const result = await pool.query(
+      `SELECT
+        p.*,
+        c.name AS category_name,
+        s.name AS supplier_name
+       FROM products p
+       LEFT JOIN categories c ON p.category_id = c.id
+       LEFT JOIN suppliers s ON p.supplier_id = s.id
+       WHERE p.quantity <= p.reorder_level
+       ORDER BY p.quantity ASC`
+    );
+
+    return res.status(200).json({
+      success: true,
+      count: result.rows.length,
+      products: result.rows,
+    });
+  } catch (error) {
+    console.error("Get low-stock products error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};

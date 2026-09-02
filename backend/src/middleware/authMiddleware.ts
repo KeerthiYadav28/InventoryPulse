@@ -3,8 +3,11 @@ import jwt from "jsonwebtoken";
 
 interface JwtPayload {
   id: number;
+  userId: number;
   email: string;
   role: string;
+  iat: number;
+  exp: number;
 }
 
 export interface AuthRequest extends Request {
@@ -48,6 +51,8 @@ export const authenticateToken = (
 
     req.user = decoded;
 
+    console.log("AUTHENTICATED USER:", req.user);
+
     next();
   } catch (error) {
     return res.status(401).json({
@@ -58,6 +63,7 @@ export const authenticateToken = (
 };
 export const authorizeRoles = (...allowedRoles: string[]) => {
   return (req: AuthRequest, res: Response, next: NextFunction) => {
+    console.log("USER RECEIVED BY authorizeRoles:", req.user);
     if (!req.user) {
       return res.status(401).json({
         success: false,
