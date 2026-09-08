@@ -1,4 +1,6 @@
 import { Router } from "express";
+import { body, param } from "express-validator";
+import { handleValidationErrors } from "../middleware/validationMiddleware";
 
 import {
   createCategory,
@@ -20,6 +22,11 @@ router.post(
   "/",
   authenticateToken,
   authorizeRoles("admin", "manager"),
+  body("name")
+    .trim()
+    .notEmpty()
+    .withMessage("Category name is required"),
+  handleValidationErrors,
   createCategory
 );
 
@@ -34,6 +41,10 @@ router.get(
 router.get(
   "/:id",
   authenticateToken,
+  param("id")
+    .isUUID()
+    .withMessage("Invalid category ID"),
+  handleValidationErrors,
   getCategoryById
 );
 
@@ -42,6 +53,15 @@ router.put(
   "/:id",
   authenticateToken,
   authorizeRoles("admin", "manager"),
+  param("id")
+    .isUUID()
+    .withMessage("Invalid category ID"),
+  body("name")
+    .optional()
+    .trim()
+    .notEmpty()
+    .withMessage("Category name can not be empty"),
+  handleValidationErrors,
   updateCategory
 );
 
@@ -50,6 +70,10 @@ router.delete(
   "/:id",
   authenticateToken,
   authorizeRoles("admin"),
+  param("id")
+    .isUUID()
+    .withMessage("Invalid category ID"),
+  handleValidationErrors,
   deleteCategory
 );
 
