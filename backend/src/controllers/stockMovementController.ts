@@ -1,7 +1,9 @@
 import { Response } from "express";
 import { pool } from "../config/database";
 import { AuthRequest } from "../middleware/authMiddleware";
+import { AppError } from "../utils/AppError";
 
+// CREATE STOCK MOVEMENT
 export const createStockMovement = async (
   req: AuthRequest,
   res: Response
@@ -13,38 +15,32 @@ export const createStockMovement = async (
 
     // Validate required fields
     if (!product_id || !type || quantity === undefined) {
-      return res.status(400).json({
-        success: false,
-        message: "product_id, type and quantity are required",
-      });
+      throw new AppError(
+        "product_id, type and quantity are required",
+        400
+      );
     }
 
     // Validate movement type
     const allowedTypes = ["IN", "OUT", "ADJUSTMENT"];
 
     if (!allowedTypes.includes(type)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid movement type",
-      });
+      throw new AppError("Invalid movement type", 400);
     }
 
     // Validate quantity
     if (!Number.isInteger(quantity) || quantity <= 0) {
-      return res.status(400).json({
-        success: false,
-        message: "Quantity must be a positive integer",
-      });
+      throw new AppError(
+        "Quantity must be a positive integer",
+        400
+      );
     }
 
     // Get logged-in user
     const createdBy = req.user?.userId;
 
     if (!createdBy) {
-      return res.status(401).json({
-        success: false,
-        message: "User authentication required",
-      });
+      throw new AppError("User authentication required", 401);
     }
 
     // Start transaction
@@ -58,11 +54,7 @@ export const createStockMovement = async (
 
     if (productResult.rows.length === 0) {
       await client.query("ROLLBACK");
-
-      return res.status(404).json({
-        success: false,
-        message: "Product not found",
-      });
+      throw new AppError("Product not found", 404);
     }
 
     const currentQuantity = productResult.rows[0].quantity;
@@ -78,11 +70,7 @@ export const createStockMovement = async (
     if (type === "OUT") {
       if (currentQuantity < quantity) {
         await client.query("ROLLBACK");
-
-        return res.status(400).json({
-          success: false,
-          message: "Insufficient stock",
-        });
+        throw new AppError("Insufficient stock", 400);
       }
 
       newQuantity = currentQuantity - quantity;
@@ -121,37 +109,38 @@ export const createStockMovement = async (
       new_quantity: newQuantity,
     });
   } catch (error) {
-    // Rollback if anything fails
-    await client.query("ROLLBACK");
+    try {
+      await client.query("ROLLBACK");
+    } catch (rollbackError) {
+      console.error("Rollback error:", rollbackError);
+    }
+
+    if (error instanceof AppError) {
+      throw error;
+    }
 
     console.error("Create stock movement error:", error);
 
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error",
-    });
+    throw new AppError("Internal server error", 500);
   } finally {
-    // Always release database connection
     client.release();
   }
 };
 
+// GET ALL STOCK MOVEMENTS
 export const getStockMovements = async (
   req: AuthRequest,
   res: Response
 ) => {
   try {
-    const { product_id, type} = req.query;
+    const { product_id, type } = req.query;
 
     const allowedTypes = ["IN", "OUT", "ADJUSTMENT"];
 
     if (type && !allowedTypes.includes(String(type))) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid movement type",
-      });
+      throw new AppError("Invalid movement type", 400);
     }
-    
+
     let query = `
       SELECT
         sm.id,
@@ -169,19 +158,18 @@ export const getStockMovements = async (
     `;
 
     const values: string[] = [];
-
     const conditions: string[] = [];
 
     if (product_id) {
       values.push(String(product_id));
       conditions.push(`sm.product_id = $${values.length}`);
     }
-    
+
     if (type) {
       values.push(String(type));
       conditions.push(`sm.type = $${values.length}`);
     }
-    
+
     if (conditions.length > 0) {
       query += ` WHERE ${conditions.join(" AND ")}`;
     }
@@ -196,15 +184,17 @@ export const getStockMovements = async (
       movements: result.rows,
     });
   } catch (error) {
+    if (error instanceof AppError) {
+      throw error;
+    }
+
     console.error("Get stock movements error:", error);
 
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error",
-    });
+    throw new AppError("Internal server error", 500);
   }
 };
 
+// GET STOCK MOVEMENT BY ID
 export const getStockMovementById = async (
   req: AuthRequest,
   res: Response
@@ -231,10 +221,7 @@ export const getStockMovementById = async (
     );
 
     if (result.rows.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: "Stock movement not found",
-      });
+      throw new AppError("Stock movement not found", 404);
     }
 
     return res.status(200).json({
@@ -242,11 +229,12 @@ export const getStockMovementById = async (
       movement: result.rows[0],
     });
   } catch (error) {
+    if (error instanceof AppError) {
+      throw error;
+    }
+
     console.error("Get stock movement by ID error:", error);
 
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error",
-    });
+    throw new AppError("Internal server error", 500);
   }
 };

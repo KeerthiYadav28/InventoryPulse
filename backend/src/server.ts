@@ -8,6 +8,7 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import { pool } from "./config/database";
+import { errorHandler } from "./middleware/errorMiddleware";
 
 dotenv.config();
 
@@ -21,6 +22,9 @@ app.use("/api/products", productRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/suppliers", supplierRoutes);
 app.use("/api/stock-movements", stockMovementRoutes);
+
+// Error handling — must be last
+app.use(errorHandler);
 
 app.get("/api/health", async (_req, res) => {
   try {

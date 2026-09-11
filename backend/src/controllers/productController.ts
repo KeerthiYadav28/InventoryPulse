@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { pool } from "../config/database";
+import { AppError } from "../utils/AppError";
 
 // CREATE PRODUCT
 export const createProduct = async (req: Request, res: Response) => {
@@ -16,31 +17,19 @@ export const createProduct = async (req: Request, res: Response) => {
     } = req.body;
 
     if (!name || !sku) {
-      return res.status(400).json({
-        success: false,
-        message: "Product name and SKU are required",
-      });
+      throw new AppError("Product name and SKU are required", 400);
     }
 
     if (quantity !== undefined && quantity < 0) {
-      return res.status(400).json({
-        success: false,
-        message: "Quantity cannot be negative",
-      });
+      throw new AppError("Quantity cannot be negative", 400);
     }
 
     if (reorder_level !== undefined && reorder_level < 0) {
-      return res.status(400).json({
-        success: false,
-        message: "Reorder level cannot be negative",
-      });
+      throw new AppError("Reorder level cannot be negative", 400);
     }
 
     if (unit_price !== undefined && unit_price < 0) {
-      return res.status(400).json({
-        success: false,
-        message: "Price cannot be negative",
-      });
+      throw new AppError("Price cannot be negative", 400);
     }
 
     const existingProduct = await pool.query(
@@ -49,10 +38,10 @@ export const createProduct = async (req: Request, res: Response) => {
     );
 
     if (existingProduct.rows.length > 0) {
-      return res.status(409).json({
-        success: false,
-        message: "A product with this SKU already exists",
-      });
+      throw new AppError(
+        "A product with this SKU already exists",
+        409
+      );
     }
 
     const result = await pool.query(
@@ -78,12 +67,13 @@ export const createProduct = async (req: Request, res: Response) => {
       product: result.rows[0],
     });
   } catch (error) {
+    if (error instanceof AppError) {
+      throw error;
+    }
+  
     console.error("Create product error:", error);
-
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error",
-    });
+  
+    throw new AppError("Internal server error", 500);
   }
 };
 
@@ -117,6 +107,7 @@ export const getProducts = async (_req: Request, res: Response) => {
 };
 
 // GET PRODUCT BY ID
+
 export const getProductById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
@@ -134,10 +125,7 @@ export const getProductById = async (req: Request, res: Response) => {
     );
 
     if (result.rows.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: "Product not found",
-      });
+      throw new AppError("Product not found", 404);
     }
 
     return res.status(200).json({
@@ -145,12 +133,13 @@ export const getProductById = async (req: Request, res: Response) => {
       product: result.rows[0],
     });
   } catch (error) {
-    console.error("Get product error:", error);
+    if (error instanceof AppError) {
+      throw error;
+    }
 
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error",
-    });
+    console.error("Get product by ID error:", error);
+
+    throw new AppError("Internal server error", 500);
   }
 };
 
@@ -209,18 +198,23 @@ export const updateProduct = async (req: Request, res: Response) => {
       ]
     );
 
+    if (result.rows.length === 0) {
+      throw new AppError("Product not found", 404);
+    }
+
     return res.status(200).json({
       success: true,
       message: "Product updated successfully",
       product: result.rows[0],
     });
   } catch (error) {
+    if (error instanceof AppError) {
+      throw error;
+    }
+  
     console.error("Update product error:", error);
-
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error",
-    });
+  
+    throw new AppError("Internal server error", 500);
   }
 };
 
@@ -235,10 +229,7 @@ export const deleteProduct = async (req: Request, res: Response) => {
     );
 
     if (result.rows.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: "Product not found",
-      });
+      throw new AppError("Product not found", 404);
     }
 
     return res.status(200).json({
@@ -246,12 +237,13 @@ export const deleteProduct = async (req: Request, res: Response) => {
       message: "Product deleted successfully",
     });
   } catch (error) {
+    if (error instanceof AppError) {
+      throw error;
+    }
+  
     console.error("Delete product error:", error);
-
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error",
-    });
+  
+    throw new AppError("Internal server error", 500);
   }
 };
 

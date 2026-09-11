@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { pool } from "../config/database";
+import { AppError } from "../utils/AppError";
 
 // CREATE SUPPLIER
 export const createSupplier = async (
@@ -25,15 +26,13 @@ export const createSupplier = async (
   } catch (error) {
     console.error("Error creating supplier:", error);
 
-    res.status(500).json({
-      message: "Internal server error",
-    });
+    throw new AppError("Internal server error", 500);
   }
 };
 
 // GET ALL SUPPLIERS
 export const getSuppliers = async (
-  req: Request,
+  _req: Request,
   res: Response
 ): Promise<void> => {
   try {
@@ -51,9 +50,7 @@ export const getSuppliers = async (
   } catch (error) {
     console.error("Error fetching suppliers:", error);
 
-    res.status(500).json({
-      message: "Internal server error",
-    });
+    throw new AppError("Internal server error", 500);
   }
 };
 
@@ -75,21 +72,20 @@ export const getSupplierById = async (
     );
 
     if (result.rows.length === 0) {
-      res.status(404).json({
-        message: "Supplier not found",
-      });
-      return;
+      throw new AppError("Supplier not found", 404);
     }
 
     res.status(200).json({
       supplier: result.rows[0],
     });
   } catch (error) {
+    if (error instanceof AppError) {
+      throw error;
+    }
+
     console.error("Error fetching supplier:", error);
 
-    res.status(500).json({
-      message: "Internal server error",
-    });
+    throw new AppError("Internal server error", 500);
   }
 };
 
@@ -118,10 +114,7 @@ export const updateSupplier = async (
     );
 
     if (result.rows.length === 0) {
-      res.status(404).json({
-        message: "Supplier not found",
-      });
-      return;
+      throw new AppError("Supplier not found", 404);
     }
 
     res.status(200).json({
@@ -129,11 +122,13 @@ export const updateSupplier = async (
       supplier: result.rows[0],
     });
   } catch (error) {
+    if (error instanceof AppError) {
+      throw error;
+    }
+
     console.error("Error updating supplier:", error);
 
-    res.status(500).json({
-      message: "Internal server error",
-    });
+    throw new AppError("Internal server error", 500);
   }
 };
 
@@ -155,10 +150,7 @@ export const deleteSupplier = async (
     );
 
     if (result.rows.length === 0) {
-      res.status(404).json({
-        message: "Supplier not found",
-      });
-      return;
+      throw new AppError("Supplier not found", 404);
     }
 
     res.status(200).json({
@@ -166,10 +158,12 @@ export const deleteSupplier = async (
       supplier: result.rows[0],
     });
   } catch (error) {
+    if (error instanceof AppError) {
+      throw error;
+    }
+
     console.error("Error deleting supplier:", error);
 
-    res.status(500).json({
-      message: "Internal server error",
-    });
+    throw new AppError("Internal server error", 500);
   }
 };

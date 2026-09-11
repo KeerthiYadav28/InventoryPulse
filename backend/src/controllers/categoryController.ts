@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { pool } from "../config/database";
+import { AppError } from "../utils/AppError";
 
 // CREATE CATEGORY
 export const createCategory = async (
@@ -75,21 +76,20 @@ export const getCategoryById = async (
     );
 
     if (result.rows.length === 0) {
-      res.status(404).json({
-        message: "Category not found",
-      });
-      return;
+      throw new AppError("Category not found", 404);
     }
 
     res.status(200).json({
       category: result.rows[0],
     });
   } catch (error) {
+    if (error instanceof AppError) {
+      throw error;
+    }
+  
     console.error("Error fetching category:", error);
-
-    res.status(500).json({
-      message: "Internal server error",
-    });
+  
+    throw new AppError("Internal server error", 500);
   }
 };
 
@@ -116,10 +116,7 @@ export const updateCategory = async (
     );
 
     if (result.rows.length === 0) {
-      res.status(404).json({
-        message: "Category not found",
-      });
-      return;
+      throw new AppError("Category not found", 404);
     }
 
     res.status(200).json({
@@ -127,12 +124,15 @@ export const updateCategory = async (
       category: result.rows[0],
     });
   } catch (error) {
+    if (error instanceof AppError) {
+      throw error;
+    }
+
     console.error("Error updating category:", error);
 
-    res.status(500).json({
-      message: "Internal server error",
-    });
+    throw new AppError("Internal server error", 500);
   }
+
 };
 
 // DELETE CATEGORY
@@ -153,10 +153,7 @@ export const deleteCategory = async (
     );
 
     if (result.rows.length === 0) {
-      res.status(404).json({
-        message: "Category not found",
-      });
-      return;
+      throw new AppError("Category not found", 404);
     }
 
     res.status(200).json({
@@ -164,10 +161,12 @@ export const deleteCategory = async (
       category: result.rows[0],
     });
   } catch (error) {
+    if (error instanceof AppError) {
+      throw error;
+    }
+
     console.error("Error deleting category:", error);
 
-    res.status(500).json({
-      message: "Internal server error",
-    });
+    throw new AppError("Internal server error", 500);
   }
 };
