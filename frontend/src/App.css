@@ -358,3 +358,47 @@ nav a.active {
     padding: 16px;
   }
 }
+
+.movement-form {
+  display: grid;
+  gap: 10px;
+  max-width: 620px;
+  margin: 24px 0;
+  padding: 24px;
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+}
+
+.movement-form input,
+.movement-form select,
+.movement-form textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font: inherit;
+}
+
+.movements-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.movements-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.movements-table th,
+.movements-table td {
+  padding: 12px;
+  border-bottom: 1px solid #e2e8f0;
+  text-align: left;
+}
+
+@media (max-width: 640px) {
+  .movement-form {
+    padding: 16px;
+  }
+}

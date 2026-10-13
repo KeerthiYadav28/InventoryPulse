@@ -16,18 +16,21 @@ export interface StockMovementFilters {
   type?: StockMovementType;
 }
 
+
 export const getStockMovements = async (
   filters?: StockMovementFilters
 ): Promise<StockMovement[]> => {
-  const response = await api.get<StockMovement[]>(
-    "/stock-movements",
-    {
-      params: filters,
-    }
-  );
+  const response = await api.get<{
+    success: boolean;
+    count: number;
+    movements: StockMovement[];
+  }>("/stock-movements", {
+    params: filters,
+  });
 
-  return response.data;
+  return response.data.movements;
 };
+
 
 export const getStockMovementById = async (
   id: string
