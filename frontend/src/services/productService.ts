@@ -24,9 +24,13 @@ export interface UpdateProductData {
 }
 
 export const getProducts = async (): Promise<Product[]> => {
-  const response = await api.get<Product[]>("/products");
+  const response = await api.get<{
+    success: boolean;
+    count: number;
+    products: Product[];
+  }>("/products");
 
-  return response.data;
+  return response.data.products;
 };
 
 export const getProductById = async (
@@ -38,9 +42,13 @@ export const getProductById = async (
 };
 
 export const getLowStockProducts = async (): Promise<Product[]> => {
-  const response = await api.get<Product[]>("/products/low-stock");
+  const response = await api.get<{
+    success: boolean;
+    count: number;
+    products: Product[];
+  }>("/products/low-stock");
 
-  return response.data;
+  return response.data.products;
 };
 
 export const createProduct = async (

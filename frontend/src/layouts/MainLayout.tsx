@@ -5,14 +5,17 @@ import Sidebar from "../components/Sidebar";
 
 const MainLayout = () => {
   return (
-    <div>
+    <div className="app-layout">
       <Header />
-
+      
+      <div className="app-body">
       <Sidebar />
 
-      <main>
-        <Outlet />
-      </main>
+      <main
+      className="main-content">
+          <Outlet />
+        </main>
+      </div>
     </div>
   );
 };

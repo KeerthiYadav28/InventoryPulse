@@ -10,9 +10,13 @@ export interface UpdateCategoryData {
 }
 
 export const getCategories = async (): Promise<Category[]> => {
-  const response = await api.get<Category[]>("/categories");
+  const response = await api.get<{
+    success: boolean;
+    count: number;
+    categories: Category[];
+  }>("/categories");
 
-  return response.data;
+  return response.data.categories;
 };
 
 export const getCategoryById = async (

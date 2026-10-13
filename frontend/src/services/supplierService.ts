@@ -16,9 +16,13 @@ export interface UpdateSupplierData {
 }
 
 export const getSuppliers = async (): Promise<Supplier[]> => {
-  const response = await api.get<Supplier[]>("/suppliers");
+  const response = await api.get<{
+    success: boolean;
+    count: number;
+    suppliers: Supplier[];
+  }>("/suppliers");
 
-  return response.data;
+  return response.data.suppliers;
 };
 
 export const getSupplierById = async (
