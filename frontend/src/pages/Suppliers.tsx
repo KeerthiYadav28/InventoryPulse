@@ -1,3 +1,4 @@
+import { useAuth } from "../hooks/useAuth";
 import { useCallback, useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import type { Supplier } from "../types";
@@ -23,6 +24,8 @@ const emptyForm: SupplierForm = {
 };
 
 const Suppliers = () => {
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin";
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [search, setSearch] = useState("");
   const [form, setForm] = useState<SupplierForm>(emptyForm);
@@ -169,12 +172,12 @@ const Suppliers = () => {
           onChange={(event) => setSearch(event.target.value)}
         />
 
-        <button type="button" onClick={openAddForm}>
+        {isAdmin && (<button type="button" onClick={openAddForm}>
           Add Supplier
-        </button>
+        </button>)}
       </div>
 
-      {formOpen && (
+      {isAdmin && formOpen && (
         <form className="supplier-form" onSubmit={handleSubmit}>
           <h2>{editingId ? "Edit Supplier" : "Add Supplier"}</h2>
 
@@ -259,7 +262,7 @@ const Suppliers = () => {
                 <th>Email</th>
                 <th>Phone</th>
                 <th>Address</th>
-                <th>Actions</th>
+                {isAdmin && <th>Actions</th>}
               </tr>
             </thead>
             <tbody>
@@ -269,7 +272,7 @@ const Suppliers = () => {
                   <td>{supplier.email || "—"}</td>
                   <td>{supplier.phone || "—"}</td>
                   <td>{supplier.address || "—"}</td>
-                  <td>
+                  {isAdmin && (<td>
                     <button
                       type="button"
                       onClick={() => openEditForm(supplier)}
@@ -283,6 +286,7 @@ const Suppliers = () => {
                       Delete
                     </button>
                   </td>
+                  )}
                 </tr>
               ))}
             </tbody>

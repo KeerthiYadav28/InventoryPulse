@@ -1,3 +1,4 @@
+import { useAuth } from "../hooks/useAuth";
 import { useCallback, useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import type { Category } from "../types";
@@ -9,6 +10,8 @@ import {
 } from "../services/categoryService";
 
 const Categories = () => {
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin";
   const [categories, setCategories] = useState<Category[]>([]);
   const [name, setName] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -16,6 +19,7 @@ const Categories = () => {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+
 
   const loadCategories = useCallback(async () => {
     try {
@@ -114,7 +118,7 @@ const Categories = () => {
       {error && <p role="alert">{error}</p>}
       {message && <p role="status">{message}</p>}
 
-      <form onSubmit={handleSubmit}>
+      {isAdmin && (<form onSubmit={handleSubmit}>
         <h2>{editingId ? "Edit Category" : "Add Category"}</h2>
 
         <label htmlFor="category-name">Category name</label>
@@ -149,7 +153,7 @@ const Categories = () => {
             Cancel Edit
           </button>
         )}
-      </form>
+      </form>)}
 
       <h2>Category List ({categories.length})</h2>
 
@@ -163,13 +167,14 @@ const Categories = () => {
             <thead>
               <tr>
                 <th>Category Name</th>
-                <th>Actions</th>
+                {isAdmin && <th>Actions</th>}
               </tr>
             </thead>
             <tbody>
               {categories.map((category) => (
                 <tr key={category.id}>
                   <td>{category.name}</td>
+                  {isAdmin && (
                   <td>
                     <button
                       type="button"
@@ -185,6 +190,7 @@ const Categories = () => {
                       Delete
                     </button>
                   </td>
+                  )}
                 </tr>
               ))}
             </tbody>
